@@ -1,0 +1,2 @@
+docker run -it --rm --network=pipeline_default taxi_ingest:v001 --db-user=root --db-password=root --db-host=pgdatabase --db-port=5432 --db-name=ny_taxi --table-name=taxi_data_2021_06 --year=2021 --month=06
+docker run -it   -e PGADMIN_DEFAULT_EMAIL="admin@admin.com"   -e PGADMIN_DEFAULT_PASSWORD="root"   -v pgadmin_data:/var/lib/pgadmin   -p 8085:80   --network=pipeline_default   --name pgadmin   dpage/pgadmin4
