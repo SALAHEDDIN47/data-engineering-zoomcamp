@@ -7,6 +7,7 @@ Loads yellow taxi data from GitHub to PostgreSQL database.
 import pandas as pd
 from sqlalchemy import create_engine
 from tqdm.auto import tqdm
+import click
 
 # Constants and Configuration
 DATATYPES = {
@@ -33,32 +34,15 @@ DATE_COLUMNS = [
     "tpep_dropoff_datetime"
 ]
 
-# Database Configuration
-DB_CONFIG = {
-    'user': 'root',
-    'password': 'root',
-    'host': 'localhost',
-    'port': 5432,
-    'database': 'ny_taxi'
-}
-
-# Data Configuration
-DATA_CONFIG = {
-    'year': 2021,
-    'month': 1,
-    'chunk_size': 100000,
-    'table_name': 'yellow_taxi_data'
-}
-
 # Data source
 DATA_URL_PREFIX = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/'
 
 
-def create_database_connection():
+def create_database_connection(user, password, host, port, database):
     """Create and return a database connection engine."""
     connection_string = (
-        f"postgresql+psycopg://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
-        f"@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+        f"postgresql+psycopg://{user}:{password}"
+        f"@{host}:{port}/{database}"
     )
     return create_engine(connection_string)
 
@@ -135,20 +119,24 @@ def ingest_data_in_chunks(engine, data_url, chunk_size, table_name):
     print(f"\nIngestion complete! Total rows inserted: {total_rows_processed:,}")
 
 
-def main():
+@click.command()
+@click.option('--db-user', default='root', help='Database user')
+@click.option('--db-password', default='root', help='Database password')
+@click.option('--db-host', default='localhost', help='Database host')
+@click.option('--db-port', default=5432, type=int, help='Database port')
+@click.option('--db-name', default='ny_taxi', help='Database name')
+@click.option('--year', default=2021, type=int, help='Data year')
+@click.option('--month', default=1, type=int, help='Data month')
+@click.option('--chunk-size', default=100000, type=int, help='Chunk size for data ingestion')
+@click.option('--table-name', default='yellow_taxi_data', help='Table name in database')
+def main(db_user, db_password, db_host, db_port, db_name, year, month, chunk_size, table_name):
     """Main execution function."""
     print("Starting NYC Taxi Data Ingestion Process")
     print("=" * 50)
     
-    # Get configuration
-    year = DATA_CONFIG['year']
-    month = DATA_CONFIG['month']
-    chunk_size = DATA_CONFIG['chunk_size']
-    table_name = DATA_CONFIG['table_name']
-    
     # Create database connection
     print("\n1. Creating database connection...")
-    engine = create_database_connection()
+    engine = create_database_connection(db_user, db_password, db_host, db_port, db_name)
     
     # Generate data URL
     data_url = get_data_file_url(year, month)
